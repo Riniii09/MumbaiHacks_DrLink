@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dr. Link - Medical Booking Chat</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .chat-container {
+        width: 90%;
+        max-width: 800px;
+        height: 90vh;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+
+      .message {
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.user {
+        text-align: right;
+      }
+
+      .message-bubble {
+        display: inline-block;
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        word-wrap: break-word;
+      }
+
+      .user .message-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .bot .message-bubble {
+        background: white;
+        color: #333;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .doctor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #667eea;
+        max-width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .doctor-card.selected-for-compare {
+        border-left: 4px solid #10b981;
+        background: #f0fdf4;
+      }
+
+      .doctor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .doctor-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .compare-btn {
+        background: #f0f0f0;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+      }
+
+      .compare-btn:hover {
+        background: #e0e0e0;
+      }
+
+      .compare-btn.active {
+        background: #10b981;
+        color: white;
+      }
+
+      .doctor-speciality {
+        color: #666;
+        margin-bottom: 8px;
+      }
+
+      .doctor-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 15px 0;
+        font-size: 14px;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .doctor-fee {
+        font-size: 18px;
+        font-weight: bold;
+        color: #667eea;
+        margin: 15px 0;
+      }
+
+      .doctor-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+      }
+
+      .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .unclaimed-badge {
+        background: #ff9800;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-left: 10px;
+      }
+
+      /* Comparison Bar */
+      .comparison-bar {
+        display: none;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 15px 20px;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .comparison-bar.active {
+        display: flex;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      .comparison-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .comparison-count {
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .selected-doctors-list {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .selected-doctor-tag {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .remove-doctor {
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .comparison-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .compare-now-btn {
+        background: white;
+        color: #10b981;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+
+      .compare-now-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+      }
+
+      .clear-compare-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+
+      .clear-compare-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .chat-input-container {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 12px 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+
+      .chat-input:focus {
+        border-color: #667eea;
+      }
+
+      .send-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+
+      .send-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .typing-indicator {
+        display: none;
+        padding: 10px;
+        background: white;
+        border-radius: 18px;
+        width: 60px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .typing-indicator.active {
+        display: inline-block;
+      }
+
+      .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: typing 1.4s infinite;
+      }
+
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.3s;
+      }
+
+      .modal.active {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+      }
+
+      .modal-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #999;
+        transition: color 0.3s;
+      }
+
+      .close-btn:hover {
+        color: #333;
+      }
+
+      .contact-info {
+        margin: 20px 0;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 15px;
+      }
+
+      .contact-icon {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+      }
+
+      .contact-details {
+        flex: 1;
+      }
+
+      .contact-label {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 4px;
+      }
+
+      .contact-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .call-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        width: 100%;
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 16px;
+      }
+
+      .call-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      }
+
+      .slots-container {
+        margin: 20px 0;
+      }
+
+      .slot-date {
+        margin-bottom: 20px;
+      }
+
+      .date-header {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .slot-btn {
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+      }
+
+      .slot-btn:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+      }
+
+      .slot-btn.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+      }
+
+      .slot-time {
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .slot-period {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .slot-btn.selected .slot-period {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .book-confirm-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        width: 100%;
+        margin-top: 20px;
+        font-size: 16px;
+      }
+
+      .book-confirm-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .book-confirm-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-header">🏥 Dr. Link - Medical Booking Assistant</div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+          <div class="message-bubble">
+            👋 Hello! Welcome to Dr. Link. I'm here to help you find the right
+            doctor. How can I assist you today?
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Bar -->
+      <div class="comparison-bar" id="comparisonBar">
+        <div class="comparison-info">
+          <div class="comparison-count">
+            <span id="compareCount">0</span> doctors selected
+          </div>
+          <div class="selected-doctors-list" id="selectedDoctorsList"></div>
+        </div>
+        <div class="comparison-actions">
+          <button class="compare-now-btn" onclick="compareNow()">
+            📊 Compare Now
+          </button>
+          <button class="clear-compare-btn" onclick="clearComparison()">
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <input
+          type="text"
+          class="chat-input"
+          id="messageInput"
+          placeholder="Type your message here..."
+          onkeypress="handleKeyPress(event)"
+        />
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          Send
+        </button>
+      </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Contact Doctor</h2>
+          <button class="close-btn" onclick="closeContactModal()">
+            &times;
+          </button>
+        </div>
+        <div id="contactContent" class="loading">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Book Appointment</h2>
+          <button class="close-btn" onclick="closeBookingModal()">
+            &times;
+          </button>
+        </div>
+        <div id="bookingContent" class="loading">
+          Loading available slots...
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const chatMessages = document.getElementById("chatMessages");
+      const messageInput = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const comparisonBar = document.getElementById("comparisonBar");
+      const compareCount = document.getElementById("compareCount");
+      const selectedDoctorsList = document.getElementById(
+        "selectedDoctorsList"
+      );
+
+      let selectedSlot = null;
+      let currentDoctorName = null;
+      let doctorsForComparison = [];
+
+      function handleKeyPress(event) {
+        if (event.key === "Enter") {
+          sendMessage();
+        }
+      }
+
+      function addMessage(text, isUser = false) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${isUser ? "user" : "bot"}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble";
+        bubble.textContent = text;
+
+        messageDiv.appendChild(bubble);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function toggleCompareDoctor(doctorName, buttonElement, cardElement) {
+        const index = doctorsForComparison.indexOf(doctorName);
+
+        if (index > -1) {
+          // Remove from comparison
+          doctorsForComparison.splice(index, 1);
+          buttonElement.classList.remove("active");
+          buttonElement.textContent = "+ Compare";
+          cardElement.classList.remove("selected-for-compare");
+        } else {
+          // Add to comparison
+          doctorsForComparison.push(doctorName);
+          buttonElement.classList.add("active");
+          buttonElement.textContent = "✓ Added";
+          cardElement.classList.add("selected-for-compare");
+        }
+
+        updateComparisonBar();
+      }
+
+      function updateComparisonBar() {
+        compareCount.textContent = doctorsForComparison.length;
+
+        if (doctorsForComparison.length >= 2) {
+          comparisonBar.classList.add("active");
+        } else {
+          comparisonBar.classList.remove("active");
+        }
+
+        // Update selected doctors list
+        selectedDoctorsList.innerHTML = "";
+        doctorsForComparison.forEach((doctor) => {
+          const tag = document.createElement("div");
+          tag.className = "selected-doctor-tag";
+          tag.innerHTML = `
+            ${doctor.replace("Dr. ", "")}
+            <span class="remove-doctor" onclick="removeDoctorFromComparison('${doctor}')">×</span>
+          `;
+          selectedDoctorsList.appendChild(tag);
+        });
+      }
+
+      function removeDoctorFromComparison(doctorName) {
+        const index = doctorsForComparison.indexOf(doctorName);
+        if (index > -1) {
+          doctorsForComparison.splice(index, 1);
+
+          // Update UI
+          const buttons = document.querySelectorAll(".compare-btn");
+          buttons.forEach((btn) => {
+            if (btn.dataset.doctorName === doctorName) {
+              btn.classList.remove("active");
+              btn.textContent = "+ Compare";
+              btn
+                .closest(".doctor-card")
+                .classList.remove("selected-for-compare");
+            }
+          });
+
+          updateComparisonBar();
+        }
+      }
+
+      function clearComparison() {
+        doctorsForComparison = [];
+
+        // Reset all buttons and cards
+        document.querySelectorAll(".compare-btn").forEach((btn) => {
+          btn.classList.remove("active");
+          btn.textContent = "+ Compare";
+        });
+
+        document.querySelectorAll(".doctor-card").forEach((card) => {
+          card.classList.remove("selected-for-compare");
+        });
+
+        updateComparisonBar();
+      }
+
+      async function compareNow() {
+        if (doctorsForComparison.length < 2) {
+          alert("Please select at least 2 doctors to compare");
+          return;
+        }
+
+        // Create comparison message
+        const comparisonMessage = `Compare: ${doctorsForComparison.join(", ")}`;
+
+        addMessage(comparisonMessage, true);
+
+        // Clear comparison UI
+        clearComparison();
+
+        // Send to backend
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+        showTypingIndicator();
+
+        try {
+          const response = await fetch("/send_message", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: comparisonMessage }),
+          });
+
+          const data = await response.json();
+          removeTypingIndicator();
+
+          if (data.success) {
+            if (data.response) {
+              addMessage(data.response);
+            }
+          } else {
+            addMessage("Sorry, something went wrong. Please try again.");
+          }
+        } catch (error) {
+          removeTypingIndicator();
+          addMessage("Failed to connect to the server. Please try again.");
+          console.error("Error:", error);
+        } finally {
+          sendBtn.disabled = false;
+          messageInput.disabled = false;
+          messageInput.focus();
+        }
+      }
+
+      function addDoctorCard(doctor) {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "message bot";
+
+        const card = document.createElement("div");
+        card.className = "doctor-card";
+
+        card.innerHTML = `
+                <div class="doctor-header">
+                    <div class="doctor-name">
+                        👨‍⚕️ ${doctor.name}
+                        ${
+                          !doctor.is_claimed
+                            ? '<span class="unclaimed-badge">⚠️ Profile not claimed</span>'
+                            : ""
+                        }
+                    </div>
+                    <button class="compare-btn" data-doctor-name="${
+                      doctor.name
+                    }">+ Compare</button>
+                </div>
+                
+                <div class="doctor-speciality">
+                    ${doctor.speciality} — ${doctor.sub_speciality}
+                </div>
+                
+                <div class="doctor-info">
+                    <div class="info-item">
+                        💼 ${doctor.experience_years}+ Years experience
+                    </div>
+                    <div class="info-item">
+                        📍 ${doctor.location}
+                    </div>
+                    ${
+                      doctor.rating
+                        ? `
+                    <div class="info-item">
+                        ⭐ ${doctor.rating} (${doctor.reviews_count} reviews)
+                    </div>
+                    `
+                        : ""
+                    }
+                    <div class="info-item">
+                        🏥 ${doctor.hospitals}
+                    </div>
+                </div>
+                
+                <div class="doctor-fee">
+                    💰 Consultation fee: ₹${doctor.fees}/-
+                </div>
+                
+                <div class="doctor-actions">
+                    <button 
+                        class="btn btn-primary" 
+                        onclick="openBookingModal('${doctor.name}')"
+                        ${!doctor.is_claimed ? "disabled" : ""}
+                    >
+                        ${
+                          doctor.is_claimed
+                            ? "Book Now"
+                            : "Book Now (Unavailable)"
+                        }
+                    </button>
+                    <button 
+                        class="btn btn-secondary" 
+                        onclick="openContactModal('${doctor.name}')"
+                    >
+                        Contact Dr
+                    </button>
+                </div>
+            `;
+
+        cardDiv.appendChild(card);
+        chatMessages.appendChild(cardDiv);
+
+        // Add event listener to compare button
+        const compareBtn = card.querySelector(".compare-btn");
+        compareBtn.addEventListener("click", function () {
+          toggleCompareDoctor(doctor.name, this, card);
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot";
+        typingDiv.id = "typingIndicator";
+
+        const indicator = document.createElement("div");
+        indicator.className = "typing-indicator active";
+        indicator.innerHTML = "<span></span><span></span><span></span>";
+
+        typingDiv.appendChild(indicator);
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function removeTypingIndicator() {
+        const indicator = document.getElementById("typingIndicator");
+        if (indicator) {
+          indicator.remove();
+        }
+      }
+
+      async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        messageInput.value = "";
+
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+
+        showTypingIndicator();
+
+        try {
+          const response = await fetch("/send_message", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: message }),
+          });
+
+          const data = await response.json();
+
+          removeTypingIndicator();
+
+          if (data.success) {
+            if (data.response) {
+              addMessage(data.response);
+            }
+
+            if (data.doctors && data.doctors.length > 0) {
+              data.doctors.forEach((doctor) => {
+                addDoctorCard(doctor);
+              });
+            }
+          } else {
+            addMessage("Sorry, something went wrong. Please try again.");
+          }
+        } catch (error) {
+          removeTypingIndicator();
+          addMessage("Failed to connect to the server. Please try again.");
+          console.error("Error:", error);
+        } finally {
+          sendBtn.disabled = false;
+          messageInput.disabled = false;
+          messageInput.focus();
+        }
+      }
+
+      // Contact Modal Functions
+      async function openContactModal(doctorName) {
+        currentDoctorName = doctorName;
+        const modal = document.getElementById("contactModal");
+        const content = document.getElementById("contactContent");
+
+        modal.classList.add("active");
+        content.innerHTML =
+          '<div class="loading">Loading contact details...</div>';
+
+        try {
+          const response = await fetch("/get_doctor_contact", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ doctor_name: doctorName }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const doctor = data.doctor;
+            console.log("Doctor data:", doctor);
+
+            content.innerHTML = `
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">👨‍⚕️</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Doctor Name</div>
+                                    <div class="contact-value">${
+                                      doctor.name || "N/A"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">🎓</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Qualification</div>
+                                    <div class="contact-value">${
+                                      doctor.qualification || "N/A"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">💼</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Experience</div>
+                                    <div class="contact-value">${
+                                      doctor.years_experience || "N/A"
+                                    } years</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">📞</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Phone Number</div>
+                                    <div class="contact-value">${
+                                      doctor.phone || "Not available"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">📧</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Email</div>
+                                    <div class="contact-value">${
+                                      doctor.email || "Contact via phone"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">📍</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Hospital</div>
+                                    <div class="contact-value">${
+                                      doctor.location ||
+                                      doctor.hospitals ||
+                                      "N/A"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-item">
+                                <div class="contact-icon">💰</div>
+                                <div class="contact-details">
+                                    <div class="contact-label">Consultation Fee</div>
+                                    <div class="contact-value">₹${
+                                      doctor.fees || "N/A"
+                                    }</div>
+                                </div>
+                            </div>
+                            
+                            ${
+                              doctor.phone && doctor.phone !== "Not available"
+                                ? `
+                            <button class="call-btn" onclick="callDoctor('${doctor.phone}')">
+                                📞 Call Now
+                            </button>
+                            `
+                                : ""
+                            }
+                        </div>
+                    `;
+          } else {
+            content.innerHTML =
+              "<p>Failed to load contact details. Please try again.</p>";
+          }
+        } catch (error) {
+          content.innerHTML =
+            "<p>Error loading contact details. Please try again.</p>";
+          console.error("Error:", error);
+        }
+      }
+
+      function closeContactModal() {
+        document.getElementById("contactModal").classList.remove("active");
+      }
+
+      function callDoctor(phone) {
+        window.location.href = `tel:${phone}`;
+      }
+
+      // Booking Modal Functions
+      async function openBookingModal(doctorName) {
+        currentDoctorName = doctorName;
+        const modal = document.getElementById("bookingModal");
+        const content = document.getElementById("bookingContent");
+        selectedSlot = null;
+
+        modal.classList.add("active");
+        content.innerHTML =
+          '<div class="loading">Loading available slots...</div>';
+
+        try {
+          const response = await fetch("/get_doctor_slots", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ doctor_name: doctorName }),
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.slots && data.slots.length > 0) {
+            renderSlots(data.slots, doctorName);
+          } else {
+            content.innerHTML =
+              "<p>No available slots at the moment. Please try again later.</p>";
+          }
+        } catch (error) {
+          content.innerHTML = "<p>Error loading slots. Please try again.</p>";
+          console.error("Error:", error);
+        }
+      }
+
+      function renderSlots(slots, doctorName) {
+        const content = document.getElementById("bookingContent");
+
+        const slotsByDate = {};
+        slots.forEach((slot) => {
+          if (!slotsByDate[slot.date]) {
+            slotsByDate[slot.date] = [];
+          }
+          slotsByDate[slot.date].push(slot);
+        });
+
+        let html = '<div class="slots-container">';
+
+        for (const [date, dateSlots] of Object.entries(slotsByDate)) {
+          html += `
+                    <div class="slot-date">
+                        <div class="date-header">${formatDate(date)} (${
+            dateSlots[0].day
+          })</div>
+                        <div class="time-slots">
+                `;
+
+          dateSlots.forEach((slot) => {
+            html += `
+                        <div class="slot-btn" onclick="selectSlot('${date}', '${
+              slot.time_period
+            }', this)">
+                            <div class="slot-time">${capitalizeFirstLetter(
+                              slot.time_period
+                            )}</div>
+                            <div class="slot-period">${slot.time_period}</div>
+                        </div>
+                    `;
+          });
+
+          html += `
+                        </div>
+                    </div>
+                `;
+        }
+
+        html += `
+                </div>
+                <button class="book-confirm-btn" id="confirmBookBtn" onclick="confirmBooking()" disabled>
+                    Confirm Booking
+                </button>
+            `;
+
+        content.innerHTML = html;
+      }
+
+      function selectSlot(date, timePeriod, element) {
+        document.querySelectorAll(".slot-btn").forEach((btn) => {
+          btn.classList.remove("selected");
+        });
+
+        element.classList.add("selected");
+
+        selectedSlot = {
+          date: date,
+          time_period: timePeriod,
+          time: getTimeFromPeriod(timePeriod),
+        };
+
+        document.getElementById("confirmBookBtn").disabled = false;
+      }
+
+      function getTimeFromPeriod(period) {
+        const times = {
+          morning: "09:00 AM",
+          afternoon: "02:00 PM",
+          evening: "06:00 PM",
+        };
+        return times[period.toLowerCase()] || "10:00 AM";
+      }
+
+      async function confirmBooking() {
+        if (!selectedSlot) return;
+
+        const confirmBtn = document.getElementById("confirmBookBtn");
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Booking...";
+
+        try {
+          const response = await fetch("/book_appointment", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              doctor_name: currentDoctorName,
+              date: selectedSlot.date,
+              time_period: selectedSlot.time_period,
+              time: selectedSlot.time,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            closeBookingModal();
+            addMessage(
+              `✅ ${data.message}\n📅 Date: ${formatDate(
+                data.date
+              )}\n🕐 Time: ${data.time} (${data.time_period})`
+            );
+          } else {
+            alert(
+              data.error || "Failed to book appointment. Please try again."
+            );
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirm Booking";
+          }
+        } catch (error) {
+          alert("Error booking appointment. Please try again.");
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Confirm Booking";
+          console.error("Error:", error);
+        }
+      }
+
+      function closeBookingModal() {
+        document.getElementById("bookingModal").classList.remove("active");
+        selectedSlot = null;
+      }
+
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const options = { month: "short", day: "numeric", year: "numeric" };
+        return date.toLocaleDateString("en-US", options);
+      }
+
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+
+      window.onclick = function (event) {
+        const contactModal = document.getElementById("contactModal");
+        const bookingModal = document.getElementById("bookingModal");
+
+        if (event.target === contactModal) {
+          closeContactModal();
+        }
+        if (event.target === bookingModal) {
+          closeBookingModal();
+        }
+      };
+
+      window.onload = () => {
+        messageInput.focus();
+      };
+    </script>
+  </body>
+</html>
