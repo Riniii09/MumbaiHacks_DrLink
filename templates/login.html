@@ -1,13 +1,42 @@
-{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
-%} {% for category, msg in messages %}
-<div class="alert alert-{{ category }}">{{ msg }}</div>
-{% endfor %} {% endif %} {% endwith %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr Link Login</title>
 
-<form method="POST">
-  {{ form.hidden_tag() }}
+    <!-- Login Page CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  
+</head>
 
-  <p>{{ form.email.label }} {{ form.email() }}</p>
-  <p>{{ form.password.label }} {{ form.password() }}</p>
+<body>
 
-  {{ form.submit() }}
-</form>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Login Form -->
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.email.label }}
+            {{ form.email() }}
+        </p>
+
+        <p>
+            {{ form.password.label }}
+            {{ form.password() }}
+        </p>
+
+        {{ form.submit() }}
+    </form>
+
+</body>
+</html>

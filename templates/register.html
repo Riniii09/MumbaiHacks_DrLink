@@ -1,15 +1,57 @@
-{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
-%} {% for category, msg in messages %}
-<div class="alert alert-{{ category }}">{{ msg }}</div>
-{% endfor %} {% endif %} {% endwith %}
-<form method="POST">
-  {{ form.hidden_tag() }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr Link Registration</title>
 
-  <p>{{ form.full_name.label }} {{ form.full_name() }}</p>
-  <p>{{ form.email.label }} {{ form.email() }}</p>
-  <p>{{ form.number.label }} {{ form.number() }}</p>
-  <p>{{ form.gender.label }} {{ form.gender() }}</p>
-  <p>{{ form.password.label }} {{ form.password() }}</p>
+    <!-- Your Dark Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 
-  {{ form.submit() }}
-</form>
+</head>
+
+<body>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Registration Form -->
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.full_name.label }}
+            {{ form.full_name() }}
+        </p>
+
+        <p>
+            {{ form.email.label }}
+            {{ form.email() }}
+        </p>
+
+        <p>
+            {{ form.number.label }}
+            {{ form.number() }}
+        </p>
+
+        <p>
+            {{ form.gender.label }}
+            {{ form.gender() }}
+        </p>
+
+        <p>
+            {{ form.password.label }}
+            {{ form.password() }}
+        </p>
+
+        {{ form.submit() }}
+    </form>
+
+</body>
+</html>
