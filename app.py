@@ -20,9 +20,9 @@ with app.app_context():
 
 # Define a basic route
 @app.route('/')
-def index():
+def landing():
     # Renders the index.html template
-    return render_template('index.html', title='Home')
+    return render_template('landing.html', title='Home')
 
 # app.py excerpt
 
