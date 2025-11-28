@@ -98,9 +98,9 @@ def landing():
 
 # app.py excerpt
 
-@app.route('/about')
+@app.route('/explore')
 def about(): # <-- THIS is the function name (endpoint)
-    return render_template('about.html', title='About Us')
+    return render_template('explore.html', title='About Us')
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
