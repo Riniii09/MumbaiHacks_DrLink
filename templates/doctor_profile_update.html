@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% if claiming %}Claim Profile{% else %}Update Profile{% endif %} - Doctor
+      Portal
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body
+    class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen"
+    data-claiming="{% if claiming %}true{% else %}false{% endif %}"
+    data-doctor-id="{% if doctor %}{{ doctor.id }}{% else %}{{ doctor_id }}{% endif %}"
+  >
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-2">
+            <i class="fas fa-user-md text-blue-600 text-2xl"></i>
+            <span class="text-xl font-bold text-gray-800">Doctor Portal</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            {% if claiming %}
+            <a
+              href="/claim-profile"
+              class="text-gray-600 hover:text-blue-600 transition"
+            >
+              <i class="fas fa-arrow-left mr-1"></i> Back to Search
+            </a>
+            {% else %}
+            <a
+              href="/doctor/dashboard"
+              class="text-gray-600 hover:text-blue-600 transition"
+            >
+              <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-block p-4 bg-blue-100 rounded-full mb-4">
+          <i class="fas fa-id-card text-blue-600 text-4xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          {% if claiming %}Claim Your Profile{% else %}Update Your Profile{%
+          endif %}
+        </h1>
+        <p class="text-gray-600">
+          {% if claiming %} Complete your profile details to claim and activate
+          your account {% else %} Keep your information up to date for better
+          patient connections {% endif %}
+        </p>
+      </div>
+
+      <!-- Profile Form -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <form id="profileForm">
+          <!-- Basic Information -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-user-circle text-blue-600 mr-2"></i>
+              Basic Information
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Full Name *</label
+                >
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value="{% if doctor %}{{ doctor.name }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  {%
+                  if
+                  claiming
+                  %}readonly{%
+                  endif
+                  %}
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Specialization *</label
+                >
+                <input
+                  type="text"
+                  id="specialization"
+                  name="specialization"
+                  value="{% if doctor %}{{ doctor.specialization }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Sub-Specialization</label
+                >
+                <input
+                  type="text"
+                  id="sub_specialization"
+                  name="sub_specialization"
+                  value="{% if doctor %}{{ doctor.sub_specialization }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Years of Experience *</label
+                >
+                <input
+                  type="number"
+                  id="years_of_experience"
+                  name="years_of_experience"
+                  value="{% if doctor %}{{ doctor.years_of_experience }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-phone text-blue-600 mr-2"></i>
+              Contact Information
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Contact Number *</label
+                >
+                <input
+                  type="tel"
+                  id="contact"
+                  name="contact"
+                  value="{% if doctor %}{{ doctor.contact }}{% endif %}"
+                  placeholder="+91 9876543210"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Email Address *</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value="{% if doctor %}{{ doctor.email }}{% endif %}"
+                  placeholder="doctor@example.com"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Details -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-hospital text-blue-600 mr-2"></i>
+              Professional Details
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Hospital Affiliation</label
+                >
+                <input
+                  type="text"
+                  id="hospital_affiliation"
+                  name="hospital_affiliation"
+                  value="{% if doctor %}{{ doctor.hospital_affiliation }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Qualification</label
+                >
+                <input
+                  type="text"
+                  id="qualification"
+                  name="qualification"
+                  value="{% if doctor %}{{ doctor.qualification }}{% endif %}"
+                  placeholder="MBBS, MD"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Consultation Fees (₹)</label
+                >
+                <input
+                  type="number"
+                  id="consultation_fees"
+                  name="consultation_fees"
+                  value="{% if doctor %}{{ doctor.consultation_fees }}{% endif %}"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Availability</label
+                >
+                <select
+                  id="availability"
+                  name="availability"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                  <option value="Morning,Afternoon,Evening">
+                    Morning, Afternoon & Evening
+                  </option>
+                  <option value="Morning">Morning Only</option>
+                  <option value="Afternoon">Afternoon Only</option>
+                  <option value="Evening">Evening Only</option>
+                  <option value="Morning,Afternoon">Morning & Afternoon</option>
+                  <option value="Afternoon,Evening">Afternoon & Evening</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password Section -->
+          <div class="mb-8">
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-lock text-blue-600 mr-2"></i>
+              {% if claiming %}Set Password{% else %}Update Password{% endif %}
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              {% if not claiming %}
+              <div class="md:col-span-2">
+                <label class="block text-gray-700 font-medium mb-2"
+                  >Current Password *</label
+                >
+                <input
+                  type="password"
+                  id="current_password"
+                  name="current_password"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+              {% endif %}
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2">
+                  {% if claiming %}Password *{% else %}New Password{% endif %}
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  {%
+                  if
+                  claiming
+                  %}required{%
+                  endif
+                  %}
+                />
+              </div>
+
+              <div>
+                <label class="block text-gray-700 font-medium mb-2">
+                  {% if claiming %}Confirm Password *{% else %}Confirm New
+                  Password{% endif %}
+                </label>
+                <input
+                  type="password"
+                  id="confirm_password"
+                  name="confirm_password"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  {%
+                  if
+                  claiming
+                  %}required{%
+                  endif
+                  %}
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end space-x-4">
+            <button
+              type="button"
+              onclick="window.history.back()"
+              class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="submitBtn"
+              class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg"
+            >
+              <i class="fas fa-check mr-2"></i>
+              {% if claiming %}Claim Profile{% else %}Update Profile{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div
+      id="loadingModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-2xl p-8 text-center">
+        <i class="fas fa-spinner fa-spin text-blue-600 text-5xl mb-4"></i>
+        <p class="text-gray-800 font-medium">Processing...</p>
+      </div>
+    </div>
+
+    <script>
+      // Get data from data attributes instead of Jinja2
+      const claiming = document.body.dataset.claiming === "true";
+      const doctorId = document.body.dataset.doctorId;
+
+      document
+        .getElementById("profileForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const password = document.getElementById("password").value;
+          const confirmPassword =
+            document.getElementById("confirm_password").value;
+
+          // Validate passwords if provided
+          if (password || confirmPassword) {
+            if (password !== confirmPassword) {
+              showNotification("Passwords do not match", "error");
+              return;
+            }
+            if (claiming && !password) {
+              showNotification(
+                "Password is required to claim profile",
+                "error"
+              );
+              return;
+            }
+          }
+
+          // Validate required fields
+          const contact = document.getElementById("contact").value.trim();
+          const email = document.getElementById("email").value.trim();
+
+          if (!contact || !email) {
+            showNotification("Contact and Email are required", "error");
+            return;
+          }
+
+          // Show loading
+          document.getElementById("loadingModal").classList.remove("hidden");
+
+          // Build form data
+          const formData = {
+            contact: contact,
+            email: email,
+            specialization: document
+              .getElementById("specialization")
+              .value.trim(),
+            sub_specialization: document
+              .getElementById("sub_specialization")
+              .value.trim(),
+            years_of_experience: document.getElementById("years_of_experience")
+              .value,
+            hospital_affiliation: document
+              .getElementById("hospital_affiliation")
+              .value.trim(),
+            qualification: document
+              .getElementById("qualification")
+              .value.trim(),
+            consultation_fees:
+              document.getElementById("consultation_fees").value,
+            availability: document.getElementById("availability").value,
+          };
+
+          // Add passwords based on mode
+          if (claiming) {
+            formData.password = password;
+          } else {
+            const currentPassword =
+              document.getElementById("current_password").value;
+            if (!currentPassword) {
+              document.getElementById("loadingModal").classList.add("hidden");
+              showNotification(
+                "Current password is required to update profile",
+                "error"
+              );
+              return;
+            }
+            formData.current_password = currentPassword;
+            if (password) {
+              formData.new_password = password;
+            }
+          }
+
+          try {
+            const url = claiming
+              ? `/doctor/profile/${doctorId}`
+              : `/api/doctor/update_profile/${doctorId}`;
+
+            const response = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+            document.getElementById("loadingModal").classList.add("hidden");
+
+            if (data.success) {
+              showNotification(data.message, "success");
+              setTimeout(() => {
+                window.location.href = "/doctor/dashboard";
+              }, 1500);
+            } else {
+              showNotification(data.error || "An error occurred", "error");
+            }
+          } catch (error) {
+            document.getElementById("loadingModal").classList.add("hidden");
+            showNotification("Network error. Please try again.", "error");
+            console.error("Error:", error);
+          }
+        });
+
+      function showNotification(message, type) {
+        const colors = {
+          success: "bg-green-100 text-green-800 border-green-500",
+          error: "bg-red-100 text-red-800 border-red-500",
+          warning: "bg-yellow-100 text-yellow-800 border-yellow-500",
+        };
+
+        const notification = document.createElement("div");
+        notification.className = `fixed top-20 right-4 ${colors[type]} border-l-4 p-4 rounded-lg shadow-lg z-50 animate-slide-in max-w-md`;
+        notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${
+                      type === "success"
+                        ? "check-circle"
+                        : type === "error"
+                        ? "exclamation-circle"
+                        : "info-circle"
+                    } mr-3 text-xl"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
+
+      // Load doctor data and set availability on page load
+      window.addEventListener("DOMContentLoaded", async function () {
+        // If we have a doctor ID and not claiming, fetch the profile data
+        if (doctorId && !claiming) {
+          try {
+            const response = await fetch("/doctor/profile");
+            const data = await response.json();
+
+            if (data.success && data.doctor) {
+              const doctor = data.doctor;
+
+              // Set availability if it exists
+              if (doctor.availability) {
+                document.getElementById("availability").value =
+                  doctor.availability;
+              }
+            }
+          } catch (error) {
+            console.error("Error loading profile:", error);
+          }
+        }
+      });
+    </script>
+
+    <style>
+      @keyframes slide-in {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+      }
+    </style>
+  </body>
+</html>

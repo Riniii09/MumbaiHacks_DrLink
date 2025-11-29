@@ -11,3 +11,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///local.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     #SECRET_KEY = "secret-key-here"
+    SUPABASE_URL = "https://ovgifprrgpohicfgiuov.supabase.co"  # Add to config.py
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92Z2lmcHJyZ3BvaGljZmdpdW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzMzA2NTAsImV4cCI6MjA3OTkwNjY1MH0.cE_CHq84Cl1izY8bAaYOPPapWj0MPBTJxDdk9yb56B4"  # Add to config.py
+    

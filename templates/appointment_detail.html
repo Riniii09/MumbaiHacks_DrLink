@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointment Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-900 min-h-screen text-gray-100">
+    <!-- Navigation -->
+    <nav
+      class="bg-gray-800 shadow-xl sticky top-0 z-50 border-b border-gray-700"
+    >
+      <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <a
+              href="/doctor/dashboard"
+              class="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition"
+            >
+              <i class="fa-solid fa-arrow-left text-white"></i>
+            </a>
+            <div class="p-2 bg-purple-600 rounded-lg">
+              <i class="fa-solid fa-file-medical text-white text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-white">Consultation Notes</span>
+          </div>
+          <a
+            href="/logout"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+          >
+            <i class="fa-solid fa-sign-out-alt mr-1"></i> Logout
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 py-6">
+      <!-- Patient Info Card -->
+      <div
+        class="bg-gray-800 rounded-lg shadow-xl p-6 mb-6 border border-gray-700"
+      >
+        <h2 class="text-xl font-bold text-white mb-4">
+          <i class="fa-solid fa-user-circle mr-2 text-blue-400"></i>Patient
+          Information
+        </h2>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <p class="text-sm text-gray-400">Patient Name</p>
+            <p class="text-lg font-semibold text-white">
+              {{ appointment.patientname }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-400">Date</p>
+            <p class="text-lg font-semibold text-white">
+              {{ appointment.date_ddmmyyyy }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-400">Time</p>
+            <p class="text-lg font-semibold text-white">
+              {{ appointment.time }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transcripts Section -->
+      <div class="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-white">
+            <i class="fa-solid fa-comments mr-2 text-purple-400"></i
+            >Consultation Transcripts
+          </h2>
+        </div>
+
+        <!-- Record Controls -->
+        <div class="flex space-x-2 mb-2">
+          <button
+            id="startRecord"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            <i class="fa-solid fa-microphone mr-2"></i>Start Recording
+          </button>
+          <button
+            id="stopRecord"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            disabled
+          >
+            <i class="fa-solid fa-stop mr-2"></i>Stop Recording
+          </button>
+        </div>
+
+        <!-- Live Transcript -->
+        <div id="liveTranscript" class="mb-2 text-gray-300 italic">Start</div>
+
+        <!-- Transcripts List -->
+        <div id="transcriptsList" class="space-y-3 mb-4">
+          <!-- Recorded transcripts will appear here -->
+        </div>
+
+        <!-- AI Assistant Section -->
+        <div class="bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <h2 class="text-xl font-bold text-white mb-4">
+            <i class="fas fa-robot mr-2 text-blue-400"></i>AI Assistant
+          </h2>
+          <div class="flex space-x-2 mb-3">
+            <input
+              type="text"
+              id="aiQuestion"
+              placeholder="Ask a question about this consultation..."
+              class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onclick="askAI()"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <i class="fa-solid fa-paper-plane mr-2"></i>Ask
+            </button>
+          </div>
+          <div
+            id="aiResponse"
+            class="hidden bg-gray-900 border border-gray-700 rounded-lg p-4"
+          >
+            <p class="text-sm text-gray-300"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const appointmentId = "{{ appointment.id }}";
+      let transcripts = [];
+      let recognition;
+
+      if (
+        "webkitSpeechRecognition" in window ||
+        "SpeechRecognition" in window
+      ) {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          let interim = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const text = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              transcripts.push(text);
+              addTranscriptToUI(text);
+            } else {
+              interim += text;
+            }
+          }
+          document.getElementById("liveTranscript").textContent =
+            interim || "Try speaking";
+        };
+
+        recognition.onend = () => {
+          document.getElementById("startRecord").disabled = false;
+          document.getElementById("stopRecord").disabled = true;
+        };
+      } else {
+        alert("Your browser does not support Speech Recognition.");
+      }
+
+      function addTranscriptToUI(text) {
+        const div = document.createElement("div");
+        div.classList.add(
+          "bg-gray-900",
+          "border",
+          "border-gray-700",
+          "rounded-lg",
+          "p-3"
+        );
+        div.textContent = text;
+        document.getElementById("transcriptsList").appendChild(div);
+      }
+
+      document.getElementById("startRecord").onclick = () => {
+        recognition.start();
+        document.getElementById("startRecord").disabled = true;
+        document.getElementById("stopRecord").disabled = false;
+      };
+
+      document.getElementById("stopRecord").onclick = () => {
+        recognition.stop();
+      };
+
+      async function askAI() {
+        const question = document.getElementById("aiQuestion").value.trim();
+        if (!question) return alert("Enter a question");
+
+        const aiResponseDiv = document.getElementById("aiResponse");
+        aiResponseDiv.classList.remove("hidden");
+        aiResponseDiv.querySelector("p").textContent = "Processing...";
+
+        const context = transcripts.join("\n");
+
+        const response = await fetch("/api/ask_gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, context }),
+        });
+
+        const data = await response.json();
+        aiResponseDiv.querySelector("p").textContent =
+          data.answer || "No answer from AI";
+      }
+
+      document
+        .getElementById("aiQuestion")
+        ?.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") askAI();
+        });
+    </script>
+
+    <style>
+      details[open] summary i.fa-chevron-down {
+        transform: rotate(180deg);
+      }
+      details summary i.fa-chevron-down {
+        transition: transform 0.2s;
+      }
+    </style>
+  </body>
+</html>

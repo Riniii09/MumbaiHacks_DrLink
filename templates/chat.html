@@ -894,24 +894,21 @@
                 </div>
                 
                 <div class="doctor-actions">
-                    <button 
-                        class="btn btn-primary" 
-                        onclick="openBookingModal('${doctor.name}')"
-                        ${!doctor.is_claimed ? "disabled" : ""}
-                    >
-                        ${
-                          doctor.is_claimed
-                            ? "Book Now"
-                            : "Book Now (Unavailable)"
-                        }
-                    </button>
-                    <button 
-                        class="btn btn-secondary" 
-                        onclick="openContactModal('${doctor.name}')"
-                    >
-                        Contact Dr
-                    </button>
-                </div>
+    <a 
+        class="btn btn-primary" 
+        href="${doctor.is_claimed ? `/agent` : "#"}"
+        ${!doctor.is_claimed ? "disabled" : ""}
+    >
+        ${doctor.is_claimed ? "Book Now" : "Book Now (Unavailable)"}
+    </a>
+    <button 
+        class="btn btn-secondary" 
+        onclick="openContactModal('${doctor.name}')"
+    >
+        Contact Dr
+    </button>
+</div>
+
             `;
 
         cardDiv.appendChild(card);

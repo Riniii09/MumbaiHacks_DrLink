@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Login - Healthcare Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body
+    class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen flex items-center justify-center"
+  >
+    <!-- Background Pattern -->
+    <div
+      class="absolute inset-0 overflow-hidden pointer-events-none opacity-10"
+    >
+      <div
+        class="absolute top-20 left-20 w-72 h-72 bg-blue-400 rounded-full blur-3xl"
+      ></div>
+      <div
+        class="absolute bottom-20 right-20 w-96 h-96 bg-purple-400 rounded-full blur-3xl"
+      ></div>
+    </div>
+
+    <div class="relative max-w-md w-full mx-4">
+      <!-- Logo/Header -->
+      <div class="text-center mb-8">
+        <div
+          class="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-xl mb-4"
+        >
+          <i class="fas fa-user-md text-white text-5xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Doctor Portal</h1>
+        <p class="text-gray-600">Sign in to manage your practice</p>
+      </div>
+
+      <!-- Login Card -->
+      <div class="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-lg">
+        <form id="loginForm">
+          <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-envelope text-blue-600 mr-2"></i>
+              Contact Number or Email
+            </label>
+            <input
+              type="text"
+              id="contact"
+              name="contact"
+              placeholder="Enter your contact number or email"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 transition"
+              required
+            />
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-lock text-blue-600 mr-2"></i>
+              Password
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 transition"
+                required
+              />
+              <button
+                type="button"
+                onclick="togglePassword()"
+                class="absolute right-4 top-3.5 text-gray-500 hover:text-gray-700"
+              >
+                <i id="eyeIcon" class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="loginBtn"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-xl transform hover:scale-105 transition duration-200"
+          >
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="flex items-center my-6">
+          <div class="flex-1 border-t border-gray-300"></div>
+          <span class="px-4 text-gray-500 text-sm">OR</span>
+          <div class="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        <!-- Claim Profile Link -->
+        <a
+          href="/claim-profile"
+          class="block w-full text-center py-3 border-2 border-blue-600 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition"
+        >
+          <i class="fas fa-id-card mr-2"></i>
+          Claim Your Profile
+        </a>
+
+        <!-- Help Text -->
+        <div class="mt-6 text-center">
+          <p class="text-sm text-gray-600">
+            Don't have access?
+            <a
+              href="/claim-profile"
+              class="text-blue-600 hover:underline font-medium"
+            >
+              Claim your profile first
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Back to Home -->
+      <div class="text-center mt-6">
+        <a href="/" class="text-gray-600 hover:text-blue-600 transition">
+          <i class="fas fa-arrow-left mr-2"></i>
+          Back to Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div
+      id="loadingModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    >
+      <div class="bg-white rounded-2xl p-8 text-center">
+        <i class="fas fa-spinner fa-spin text-blue-600 text-5xl mb-4"></i>
+        <p class="text-gray-800 font-medium">Signing you in...</p>
+      </div>
+    </div>
+
+    <script>
+      function togglePassword() {
+        const passwordInput = document.getElementById("password");
+        const eyeIcon = document.getElementById("eyeIcon");
+
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          eyeIcon.classList.remove("fa-eye");
+          eyeIcon.classList.add("fa-eye-slash");
+        } else {
+          passwordInput.type = "password";
+          eyeIcon.classList.remove("fa-eye-slash");
+          eyeIcon.classList.add("fa-eye");
+        }
+      }
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const contact = document.getElementById("contact").value.trim();
+          const password = document.getElementById("password").value;
+
+          if (!contact || !password) {
+            showNotification(
+              "Please enter both contact/email and password",
+              "error"
+            );
+            return;
+          }
+
+          document.getElementById("loadingModal").classList.remove("hidden");
+
+          try {
+            const response = await fetch("/doclogin", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ contact, password }),
+            });
+
+            const data = await response.json();
+            document.getElementById("loadingModal").classList.add("hidden");
+
+            if (data.success) {
+              showNotification("Login successful! Redirecting...", "success");
+              setTimeout(() => {
+                window.location.href = "/doctor/dashboard";
+              }, 1000);
+            } else {
+              showNotification(
+                data.error || "Login failed. Please try again.",
+                "error"
+              );
+            }
+          } catch (error) {
+            document.getElementById("loadingModal").classList.add("hidden");
+            showNotification(
+              "Network error. Please check your connection.",
+              "error"
+            );
+            console.error("Login error:", error);
+          }
+        });
+
+      function showNotification(message, type) {
+        const colors = {
+          success: "bg-green-100 text-green-800 border-green-500",
+          error: "bg-red-100 text-red-800 border-red-500",
+          warning: "bg-yellow-100 text-yellow-800 border-yellow-500",
+        };
+
+        const notification = document.createElement("div");
+        notification.className = `fixed top-4 right-4 ${colors[type]} border-l-4 p-4 rounded-lg shadow-xl z-50 animate-slide-in max-w-md`;
+        notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${
+                      type === "success"
+                        ? "check-circle"
+                        : type === "error"
+                        ? "exclamation-circle"
+                        : "info-circle"
+                    } mr-3 text-xl"></i>
+                    <p class="font-medium">${message}</p>
+                </div>
+            `;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
+
+      // Handle flash messages from backend
+      window.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get("message");
+        const type = urlParams.get("type") || "info";
+
+        if (message) {
+          showNotification(decodeURIComponent(message), type);
+        }
+      });
+    </script>
+
+    <style>
+      @keyframes slide-in {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+      }
+    </style>
+  </body>
+</html>
