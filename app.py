@@ -80,55 +80,74 @@ def parse_doctor_cards(output):
     print(f"🔍 Found {len(cards)} card(s) in output")
     
     for idx, card in enumerate(cards):
-        print(f"\n{'='*80}")
-        print(f"📋 CARD {idx + 1} CONTENT:")
-        print(card)
-        print(f"{'='*80}\n")
-        
         try:
-            # Try multiple regex patterns for name extraction
-            name_patterns = [
-                r'👨‍⚕️\s*Dr\.\s*([A-Za-z\s.-]+?)(?:\s*│|\s*\n)',
-                r'Dr\.\s*([A-Za-z\s.-]+?)(?:\s*│|\s*\n)',
-                r'👨‍⚕️\s*([A-Za-z\s.-]+?)(?:\s*│|\s*\n)',
-                r'│\s*👨‍⚕️\s*Dr\.\s*([A-Za-z\s.-]+)',
-            ]
+            # Extract doctor name - handle broken emoji and flexible spacing
+            # Pattern matches: │ [emoji] Dr. Name [spaces/brackets] │
+            name_match = re.search(r'│\s*(?:👨‍⚕️?|👨‍⚕)\s*Dr\.\s*([A-Za-z\s.-]+?)\s+(?:\[|—|│)', card)
             
-            name_match = None
-            for pattern in name_patterns:
-                name_match = re.search(pattern, card)
-                if name_match:
-                    print(f"✅ Name found with pattern: {pattern}")
-                    print(f"   Extracted: {name_match.group(1)}")
-                    break
-            
+            # Fallback: try without "Dr." prefix
             if not name_match:
-                print(f"❌ No name match found. Trying to extract from first line...")
-                # Try to get any text after emoji
-                emoji_match = re.search(r'👨‍⚕️\s*(.+?)(?:\n|│)', card)
-                if emoji_match:
-                    print(f"   Found after emoji: {emoji_match.group(1)}")
+                name_match = re.search(r'│\s*(?:👨‍⚕️?|👨‍⚕)\s*([A-Za-z\s.-]+?)\s+(?:\[|—|│)', card)
             
-            spec_match = re.search(r'│\s+([^—]+)—\s+([^\│]+)', card)
-            exp_match = re.search(r'(\d+)\+\s+Years', card)
-            location_match = re.search(r'📍\s+([^⭐│\n]+)', card)
-            rating_match = re.search(r'⭐\s+(\d+\.?\d*)\s+\((\d+)', card)
-            hospital_match = re.search(r'Also at:\s+([^\│\n]+)', card)
+            # Extract specialization (the part after the em-dash)
+            spec_match = re.search(r'—\s*([^\n│]+)', card)
+            
+            # Extract experience - handles formats like "+ 18 Years experience" or "18+ Years"
+            exp_match = re.search(r'(?:\+\s*)?(\d+)\s*\+?\s*Years?\s+experience', card, re.IGNORECASE)
+            
+            # Debug experience extraction
+            if exp_match:
+                print(f"   ✅ Experience: {exp_match.group(1)} years")
+            else:
+                print(f"   ⚠️ No experience found in card")
+                # Try to find any number followed by "Years"
+                exp_debug = re.search(r'(\d+).*?[Yy]ears?', card)
+                if exp_debug:
+                    print(f"      Debug found: {exp_debug.group(0)}")
+            
+            # Extract location (after pin emoji, before star or │)
+            location_match = re.search(r'📍\s*([^⭐│\n]+)', card)
+            
+            # Extract rating (format: ⭐ 4.5 (123))
+            rating_match = re.search(r'⭐\s*(\d+\.?\d*)\s*\((\d+)\)', card)
+            
+            # Extract hospital affiliation (after "Also at:")
+            hospital_match = re.search(r'Also at:\s*([^\n│]+?)(?:\s*│|\s*$)', card)
+            
+            # Extract consultation fee
             fee_match = re.search(r'₹\s*(\d+)', card)
             
             # Check if profile is claimed
             is_claimed = 'Profile not claimed' not in card
             
             # Extract and clean the name
-            doctor_name = name_match.group(1).strip() if name_match else "Unknown"
+            if name_match:
+                doctor_name = name_match.group(1).strip()
+                print(f"✅ Card {idx + 1}: Extracted name = {doctor_name}")
+            else:
+                doctor_name = "Unknown"
+                print(f"❌ Card {idx + 1}: Could not extract name")
+                print(f"   First 200 chars: {card[:200]}")
             
-            print(f"📝 Final extracted name: {doctor_name}")
+            # Get specialization - use the part after em-dash
+            specialization = ""
+            sub_specialization = ""
+            
+            if spec_match:
+                spec_text = spec_match.group(1).strip()
+                # Some cards have "Specialty — Sub-specialty" format
+                if '—' in spec_text:
+                    parts = spec_text.split('—')
+                    specialization = parts[0].strip()
+                    sub_specialization = parts[1].strip() if len(parts) > 1 else ""
+                else:
+                    specialization = spec_text
             
             # Map to your database schema
             doctor = {
                 'name': f"Dr. {doctor_name}",
-                'specialization': spec_match.group(1).strip() if spec_match else "",
-                'sub_specialization': spec_match.group(2).strip() if spec_match else "",
+                'specialization': specialization,
+                'sub_specialization': sub_specialization,
                 'years_of_experience': exp_match.group(1) if exp_match else "0",
                 'location': location_match.group(1).strip() if location_match else "",
                 'rating': rating_match.group(1) if rating_match else None,
@@ -138,14 +157,13 @@ def parse_doctor_cards(output):
                 'is_claimed': is_claimed,
                 
                 # Keep these for frontend compatibility
-                'speciality': spec_match.group(1).strip() if spec_match else "",
-                'sub_speciality': spec_match.group(2).strip() if spec_match else "",
+                'speciality': specialization,
+                'sub_speciality': sub_specialization,
                 'experience_years': exp_match.group(1) if exp_match else "0",
                 'hospitals': hospital_match.group(1).strip() if hospital_match else "",
                 'fees': fee_match.group(1) if fee_match else "0"
             }
             
-            print(f"✅ Parsed doctor: {doctor['name']}")
             doctors.append(doctor)
             
         except Exception as e:
@@ -158,7 +176,9 @@ def parse_doctor_cards(output):
     clean_text = re.sub(card_pattern, '', output, flags=re.DOTALL)
     clean_text = re.sub(r'\n{3,}', '\n\n', clean_text).strip()
     
-    print(f"\n📊 Total doctors parsed: {len(doctors)}")
+    print(f"📊 Total doctors successfully parsed: {len(doctors)}")
+    for i, doc in enumerate(doctors):
+        print(f"   {i+1}. {doc['name']} - {doc['specialization']}")
     
     return {'text': clean_text, 'doctors': doctors}
 # ==================== PUBLIC ROUTES ====================
